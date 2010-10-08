@@ -10,7 +10,7 @@ TOKEN NUMBER:    1                  2       3       4        5         6
 
 """
 
-from __future__ import with_statement
+#from __future__ import with_statement
 
 COLUMNS = { 0:"SourceFileOrURL",
             1:"Alg",
@@ -26,7 +26,8 @@ from stat import *
 
 import re
 
-from collections import defaultdict
+#from collections import defaultdict
+from kitchen.pycompat25.collections._defaultdict import defaultdict
 
 import hashlib
 
@@ -125,14 +126,14 @@ class CheckmReporter(object):
                     else:
                         logger.info("Manifest file match - scan line ignored")
         else:
-            with codecs.open(filename, encoding='utf-8', mode="w") as output:
-                for line in report:
-                    if line[2] != "d":
-                        if os.path.abspath(line[0]) != os.path.abspath(filename):
-                            output.write("%s%s%s\n" % (line[2], delimiter, line[0]))
-                        else:
-                            logger.info("Manifest file match - scan line ignored")
-                output.write("\n")
+            output = codecs.open(filename, encoding='utf-8', mode="w")
+            for line in report:
+                if line[2] != "d":
+                    if os.path.abspath(line[0]) != os.path.abspath(filename):
+                        output.write("%s%s%s\n" % (line[2], delimiter, line[0]))
+                    else:
+                        logger.info("Manifest file match - scan line ignored")
+            output.write("\n")
         return filename
         
     def create_multilevel_checkm(self, top_directory, algorithm, checkm_filename, columns=3):
@@ -147,28 +148,28 @@ class CheckmReporter(object):
         # per directory
         for (dirname,_) in dir_list:
             logger.info('creating checkm file %s in %s' % (checkm_filename, dirname))
-            with codecs.open(os.path.join(dirname, checkm_filename), encoding='utf-8', mode="w") as output:
-                self.create_checkm_file(dirname, 
-                                        algorithm, 
-                                        os.path.join(dirname, checkm_filename), 
-                                        recursive=False,
-                                        columns=columns,
-                                        checkm_file=output)
-                subdir_report = []
-                for subdir in dirs[dirname]:
-                    logger.info('Checking sub-checkm file and adding it to the list of hashes in %s' % dirname)
-                    try:
-                        line = self.scanner.scan_path(os.path.join(dirname, subdir, checkm_filename), algorithm, columns)
-                        logger.info("Line - %s" % line)
-                        line[0] = '@%s' % (line[0])
-                        subdir_report.append(line)
-                    except Exception, e:
-                        print dirname, subdir, checkm_filename
-                        print "Fail! %s" % e
-                col_maxes = self._get_max_len(subdir_report)
-                for line in subdir_report:
-                    output.write('%s\n' % (self._space_line(line, col_maxes)))
-                output.write('\n')
+            output = codecs.open(os.path.join(dirname, checkm_filename), encoding='utf-8', mode="w")
+            self.create_checkm_file(dirname, 
+                                    algorithm, 
+                                    os.path.join(dirname, checkm_filename), 
+                                    recursive=False,
+                                    columns=columns,
+                                    checkm_file=output)
+            subdir_report = []
+            for subdir in dirs[dirname]:
+                logger.info('Checking sub-checkm file and adding it to the list of hashes in %s' % dirname)
+                try:
+                    line = self.scanner.scan_path(os.path.join(dirname, subdir, checkm_filename), algorithm, columns)
+                    logger.info("Line - %s" % line)
+                    line[0] = '@%s' % (line[0])
+                    subdir_report.append(line)
+                except Exception, e:
+                    print dirname, subdir, checkm_filename
+                    print "Fail! %s" % e
+            col_maxes = self._get_max_len(subdir_report)
+            for line in subdir_report:
+                output.write('%s\n' % (self._space_line(line, col_maxes)))
+            output.write('\n')
 
     def create_checkm_file(self, scan_directory, algorithm, checkm_filename, recursive=False, columns=3, checkm_file=None):
         logger.info("Creating checkm file for dir(%s) with Alg:%s and columns: %s" % (
@@ -185,14 +186,14 @@ class CheckmReporter(object):
                     logger.info("Manifest file match - scan line ignored")
             return checkm_file
         else:
-            with codecs.open(checkm_filename, encoding='utf-8', mode="w") as output:
-                output.write("%s \n" % (self._space_line(CheckmReporter.COLUMN_NAMES[:columns], col_maxes)))
-                for line in report:
-                    if os.path.abspath(line[0]) != os.path.abspath(checkm_filename):
-                        output.write("%s\n" % (self._space_line(line, col_maxes)))
-                    else:
-                        logger.info("Manifest file match - scan line ignored")
-                output.write("\n")
+            output = codecs.open(checkm_filename, encoding='utf-8', mode="w")
+            output.write("%s \n" % (self._space_line(CheckmReporter.COLUMN_NAMES[:columns], col_maxes)))
+            for line in report:
+                if os.path.abspath(line[0]) != os.path.abspath(checkm_filename):
+                    output.write("%s\n" % (self._space_line(line, col_maxes)))
+                else:
+                    logger.info("Manifest file match - scan line ignored")
+            output.write("\n")
 
     def check_bagit_hashes(self, bagit_filename, algorithm=None):
         """
@@ -337,8 +338,8 @@ class BagitParser(object):
         @type fileobj:
         """
         if not hasattr(fileobj, "read"):
-            with codecs.open(fileobj, encoding='utf-8', mode="r") as check_fh:
-                self._parse_lines(check_fh)
+            check_fh = codecs.open(fileobj, encoding='utf-8', mode="r")
+            self._parse_lines(check_fh)
         else:
             self._parse_lines(fileobj)
         return self.lines
@@ -427,8 +428,8 @@ class CheckmParser(object):
         """
         if not hasattr(checkm_file, "read"):
             if os.path.isfile(checkm_file):
-                with codecs.open(checkm_file, encoding='utf-8', mode="r") as check_fh:
-                    self._parse_lines(check_fh)
+                check_fh = codecs.open(checkm_file, encoding='utf-8', mode="r")
+                self._parse_lines(check_fh)
             else:
                 raise NotFound(checkm_file=checkm_file)
         else:
@@ -522,12 +523,12 @@ class CheckmScanner(object):
             else:
                 # No need to catch the ValueError from
                 hash_gen = getattr(hashlib, algorithm)()
-                with open(item_path, 'rb') as fh:
-                    logger.info("Checking %s with algorithm %s" % (item_path, algorithm))
-                    chunk = fh.read(1024*8)
-                    while chunk:
-                        hash_gen.update(chunk)
-                        chunk= fh.read(1024*8)
+                fh = open(item_path, 'rb')
+                logger.info("Checking %s with algorithm %s" % (item_path, algorithm))
+                chunk = fh.read(1024*8)
+                while chunk:
+                    hash_gen.update(chunk)
+                    chunk= fh.read(1024*8)
                 line.append(unicode(hash_gen.hexdigest()))
             if columns>3:
                 # col4 - Length

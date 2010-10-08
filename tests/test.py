@@ -75,14 +75,14 @@ class TestCheckm(unittest.TestCase):
             self.dirnames = [dirname]
         for subdir in [['1'],['2'],['3'],['1','1'],['1','2'],['1','3'],['2','data']]:
             os.mkdir(os.path.join(dirname, *subdir))
-        with open(os.path.join(dirname, "default_checkm.txt"), "wb") as checkm_f:
-            checkm_f.write("#Meaningless comments\n# Should be ignored!\n")
-            for (d,_,_) in os.walk(dirname):
-                checkm_f.write("%s md5 d\n" % d)
-                with open(os.path.join(d,'foo.txt'), "wb") as output:
-                    # write a file that has a known md5sum
-                    output.write("12345678901234567890\n")
-                    checkm_f.write("%s md5 %s\n" % (os.path.join(d,'foo.txt'), FOO_TXT_MD5))
+        checkm_f = open(os.path.join(dirname, "default_checkm.txt"), "wb")
+        checkm_f.write("#Meaningless comments\n# Should be ignored!\n")
+        for (d,_,_) in os.walk(dirname):
+            checkm_f.write("%s md5 d\n" % d)
+            output = open(os.path.join(d,'foo.txt'), "wb")
+            # write a file that has a known md5sum
+            output.write("12345678901234567890\n")
+            checkm_f.write("%s md5 %s\n" % (os.path.join(d,'foo.txt'), FOO_TXT_MD5))
         return dirname
 
     def create_multi_checkm_bag(self):
@@ -94,15 +94,15 @@ class TestCheckm(unittest.TestCase):
         for subdir in [['1'],['2'],['3'],['1','1'],['1','dada'],['1','3'],['1','1','foobar'],['1','3','data']]:
             os.mkdir(os.path.join(dirname, *subdir))
             for (d,subdirs,_) in os.walk(dirname, topdown=False):
-                with open(os.path.join(d,'m_checkm.txt'), "wb") as checkm_f:
-                    checkm_f.write("# Meaningless comment!\n")
-                    for subd in subdirs:
-                        checkm_f.write("%s md5 d\n" % os.path.join(d,subd))
-                        checkm_f.write("@%s md5 -\n" % os.path.join(d,subd, 'm_checkm.txt'))
-                    with open(os.path.join(d,'foo.txt'), "wb") as output:
-                        # write a file that has a known md5sum
-                        output.write("12345678901234567890\n")
-                        checkm_f.write("%s md5 %s\n" % (os.path.join(d,'foo.txt'), FOO_TXT_MD5))
+                checkm_f = open(os.path.join(d,'m_checkm.txt'), "wb")
+                checkm_f.write("# Meaningless comment!\n")
+                for subd in subdirs:
+                    checkm_f.write("%s md5 d\n" % os.path.join(d,subd))
+                    checkm_f.write("@%s md5 -\n" % os.path.join(d,subd, 'm_checkm.txt'))
+                output = open(os.path.join(d,'foo.txt'), "wb")
+                # write a file that has a known md5sum
+                output.write("12345678901234567890\n")
+                checkm_f.write("%s md5 %s\n" % (os.path.join(d,'foo.txt'), FOO_TXT_MD5))
         return dirname
 
     def remove_bag(self, dirname):
