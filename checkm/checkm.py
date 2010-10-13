@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python:
 # -*- coding: utf-8 -*-
 
 """Checksumming convenience classes
@@ -19,6 +19,8 @@ COLUMNS = { 0:"SourceFileOrURL",
             4:"ModTime",
             5:"TargetFileOrURL",
             }
+
+CHECKM_VERSION = "0.7"
 
 
 import os, sys
@@ -166,6 +168,7 @@ class CheckmReporter(object):
                     print dirname, subdir, checkm_filename
                     print "Fail! %s" % e
             col_maxes = self._get_max_len(subdir_report)
+            output.write("#%checkm_" + CHECKM_VERSION + "\n")
             for line in subdir_report:
                 output.write('%s\n' % (self._space_line(line, col_maxes)))
             output.write('\n')
@@ -177,6 +180,7 @@ class CheckmReporter(object):
         report = self.scanner.scan_directory(scan_directory, algorithm, recursive=recursive, columns=columns)
         col_maxes = self._get_max_len(report)
         if checkm_file != None and hasattr(checkm_file, 'write'):
+            checkm_file.write("#%checkm_" + CHECKM_VERSION + "\n")
             checkm_file.write("%s \n" % (self._space_line(CheckmReporter.COLUMN_NAMES[:columns], col_maxes)))
             for line in report:
                 if os.path.abspath(line[0]) != os.path.abspath(checkm_filename):
@@ -186,6 +190,7 @@ class CheckmReporter(object):
             return checkm_file
         else:
             output = codecs.open(checkm_filename, encoding='utf-8', mode="w")
+            output.write("#%checkm_" + CHECKM_VERSION + "\n")
             output.write("%s \n" % (self._space_line(CheckmReporter.COLUMN_NAMES[:columns], col_maxes)))
             for line in report:
                 if os.path.abspath(line[0]) != os.path.abspath(checkm_filename):

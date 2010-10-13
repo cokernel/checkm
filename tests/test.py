@@ -249,5 +249,11 @@ class TestCheckm(unittest.TestCase):
                 self.failIfEqual(line.find('|'), -1)
                 break
 
+    def test_scanner_provides_version_string(self):
+        dirname = self.create_toplevel_checkm_bag_report()
+        checkm_file = open(os.path.join(dirname, "default_checkm.txt"), "r")
+        line = checkm_file.readline()
+        self.failIfEqual(None, re.match('^#%checkm_\d+\.\d+\s*$', line))
+
 if __name__ == '__main__':
     unittest.main()
