@@ -11,6 +11,8 @@ import checkm
 
 import logging
 
+import codecs
+
 # C - checkm format
 # B - bagit format
 
@@ -91,6 +93,22 @@ class TestCheckm(unittest.TestCase):
             # write a file that has a known md5sum
             output.write("12345678901234567890\n")
             checkm_f.write("%s md5 %s\n" % (os.path.join(d,'foo.txt'), FOO_TXT_MD5))
+        return dirname
+
+    def create_toplevel_checkm_bag_report(self):
+        dirname = mkdtemp()
+        if self.dirnames:
+            self.dirnames.append(dirname)
+        else:
+            self.dirnames = [dirname]
+        for subdir in [['1'],['2'],['3'],['1','1'],['1','2'],['1','3'],['2','data']]:
+            os.mkdir(os.path.join(dirname, *subdir))
+        for (d,_,_) in os.walk(dirname):
+            output = open(os.path.join(d,'foo.txt'), "wb")
+            # write a file that has a known md5sum
+            output.write("12345678901234567890\n")
+        output = codecs.open(os.path.join(dirname, 'default_checkm.txt'), encoding='utf-8', mode="w")
+        self.reporter.create_checkm_file(dirname, 'md5', 'default_checkm.txt', False, 3, output)
         return dirname
 
     def create_multi_checkm_bag(self):
@@ -222,6 +240,14 @@ class TestCheckm(unittest.TestCase):
         self.assertFalse(report['fail'])
         self.assertEqual(len(report['pass']), 25)  # 22 files/dirs to check from that particular bag
         self.assertEqual(len(report['include']), 8) # 7 m_checkm.txt files included
+
+    def test_scanner_uses_bars(self):
+        dirname = self.create_toplevel_checkm_bag_report()
+        checkm_file = open(os.path.join(dirname, "default_checkm.txt"), "r")
+        for line in checkm_file:
+            if not line.startswith('#'):
+                self.failIfEqual(line.find('|'), -1)
+                break
 
 if __name__ == '__main__':
     unittest.main()

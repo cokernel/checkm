@@ -82,7 +82,7 @@ class CheckmReporter(object):
                     cols[index] = len(line[index])
         return cols
 
-    def _space_line(self, line, col_maxes):
+    def _space_line(self, line, col_maxes, separator=u" | "):
         """
         FIXME
         @param line:
@@ -92,10 +92,9 @@ class CheckmReporter(object):
         """
         spaced_line = []
         for index in xrange(len(line)):
-            spaced_line.append(line[index])
-            spaces = col_maxes[index]-len(line[index])+4
-            spaced_line.append(u" "*spaces)
-        return u"".join(spaced_line)
+            spaces = col_maxes[index] - len(line[index]) 
+            spaced_line.append(line[index] + u" "*spaces)
+        return separator.join(spaced_line)
 
     def create_bagit_manifest(self, scan_directory, algorithm, recursive=False, delimiter = "  ", filename=None):
         """
