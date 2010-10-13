@@ -30,6 +30,14 @@ MULTILINE_C_LIST_MANIFEST = """# Just a list of files, not manifest info really
 ./filenames/in/simple/manifest/format/no/hash
 """
 
+MULTILINE_C_BAR_MANIFEST = """#%checkm_0.7
+#%profile http://example.com/profile
+./filenames/in/simple/manifest/format | md5 | 3f279a2757668a1b44db7b2c2a4a2f4e | 1 | | 
+./filenames/in/simple/manifest/format | md5 | 3f279a2757668a1b44db7b2c2a4a2f4e | 1 | | 
+./filenames/in/simple/manifest/format | md5 | 3f279a2757668a1b44db7b2c2a4a2f4e | 1 | | 
+./filenames/in/simple/manifest/format | md5 | 3f279a2757668a1b44db7b2c2a4a2f4e | 1 | | 
+"""
+
 MULTILINE_B_MANIFEST = """3f279a2757668a1b44db7b2c2a4a2f4e  ./filenames/in/simple/manifest/format
 3f279a2757668a1b44db7b2c2a4a2f4e  ./filenames/in/simple/manifest/format
 3f279a2757668a1b44db7b2c2a4a2f4e  ./filenames/in/simple/manifest/format
@@ -163,6 +171,22 @@ class TestCheckm(unittest.TestCase):
         lines = self.checkm_p.parse(s)
         self.assertEqual(len(lines), 5)
         self.assertEqual(len(lines[0]), 1)
+
+    def test_checkmp_bar_separated_lines(self):
+        # Should parses to 4 lines of 6 elements each
+        # The separator '|' should not appear in the list
+        s = StringIO(MULTILINE_C_BAR_MANIFEST)
+        lines = self.checkm_p.parse(s)
+        self.assertEqual(len(lines), 4)
+        self.assertEqual(len(lines[0]), 6)
+        self.failIfEqual(lines[0][1], '|')
+
+    def test_checkmp_allow_empty_columns(self):
+        s = StringIO(MULTILINE_C_BAR_MANIFEST)
+        lines = self.checkm_p.parse(s)
+        self.assertEqual(len(lines), 4)
+        self.assertEqual(len(lines[0]), 6)
+        self.assertEqual(lines[0][4], '')
 
     def test_checkmp_loadsacolumns_fromfilelike(self):
         # Should 'parse' to 5 lines of 1 element each

@@ -451,7 +451,14 @@ class CheckmParser(object):
             @type line:
             """
             if not line.startswith('#'):
-                tokens = filter(lambda x: x, re.split("\s+", line, 5)) # 6 column max defn == 5 splits
+                # Checkm 0.7 (2010-06-11) requires that lines be '|'-separated (with optional
+                # whitespace).  Older versions allowed lines to be separated by whitespace
+                # instead.  This parser will by default accept lines of either form.
+                separator_regex = '\s*\|\s*'
+                if (-1 == line.find('|')):
+                    separator_regex = '\s+'
+                
+                tokens = re.split(separator_regex, line, 5) # 6 column max defn == 5 splits
                 logger.info(tokens)
                 if tokens:
                     self.lines.append(tokens)
