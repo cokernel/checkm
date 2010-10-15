@@ -241,6 +241,12 @@ class TestCheckm(unittest.TestCase):
         self.assertEqual(len(report['pass']), 25)  # 22 files/dirs to check from that particular bag
         self.assertEqual(len(report['include']), 8) # 7 m_checkm.txt files included
 
+    def test_scanner_produces_nontrivial_file(self):
+        dirname = self.create_toplevel_checkm_report()
+        checkm_filename = os.path.join(dirname, "default_checkm.txt")
+        self.assertTrue(os.path.isfile(checkm_filename))
+        self.failIfEqual(0, os.path.getsize(checkm_filename))
+
     def test_scanner_uses_bars(self):
         dirname = self.create_toplevel_checkm_report()
         checkm_file = open(os.path.join(dirname, "default_checkm.txt"), "r")

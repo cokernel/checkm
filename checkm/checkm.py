@@ -137,6 +137,24 @@ class CheckmReporter(object):
             output.write("\n")
         return filename
         
+    def _write_checkm_report(self, report, checkm_filename, columns=3, checkm_file=None):
+        col_maxes = self._get_max_len(report)
+
+        if not(checkm_file != None and hasattr(checkm_file, 'write')):
+            checkm_file = codecs.open(checkm_filename, encoding='utf-8', mode='w')
+
+        ### Checkm extension - Identify version
+        checkm_file.write("#%checkm_" + CHECKM_VERSION + "\n")
+
+        checkm_file.write("%s \n" % (self._space_line(CheckmReporter.COLUMN_NAMES[:columns], col_maxes)))
+        for line in report:
+            if os.path.abspath(line[0]) != os.path.abspath(checkm_filename):
+                checkm_file.write("%s\n" % (self._space_line(line, col_maxes)))
+            else:
+                logger.info("Manifest file match - scan line ignored")
+        #checkm_file.write('\n')
+        return checkm_file
+
     def create_multilevel_checkm(self, top_directory, algorithm, checkm_filename, columns=3):
         logger.info("Creating multilevel checkm files '(%s)' from top level directory(%s) with Alg:%s and columns:%s" % (checkm_filename, top_directory, algorithm, columns))
         if not os.path.isdir(top_directory):
@@ -167,10 +185,7 @@ class CheckmReporter(object):
                 except Exception, e:
                     print dirname, subdir, checkm_filename
                     print "Fail! %s" % e
-            col_maxes = self._get_max_len(subdir_report)
-            output.write("#%checkm_" + CHECKM_VERSION + "\n")
-            for line in subdir_report:
-                output.write('%s\n' % (self._space_line(line, col_maxes)))
+            output = self._write_checkm_report(subdir_report, checkm_filename, columns, output)
             output.write('\n')
 
     def create_checkm_file(self, scan_directory, algorithm, checkm_filename, recursive=False, columns=3, checkm_file=None):
@@ -178,26 +193,7 @@ class CheckmReporter(object):
                                                                                           scan_directory,
                                                                                           algorithm, columns))
         report = self.scanner.scan_directory(scan_directory, algorithm, recursive=recursive, columns=columns)
-        col_maxes = self._get_max_len(report)
-        if checkm_file != None and hasattr(checkm_file, 'write'):
-            checkm_file.write("#%checkm_" + CHECKM_VERSION + "\n")
-            checkm_file.write("%s \n" % (self._space_line(CheckmReporter.COLUMN_NAMES[:columns], col_maxes)))
-            for line in report:
-                if os.path.abspath(line[0]) != os.path.abspath(checkm_filename):
-                    checkm_file.write("%s\n" % (self._space_line(line, col_maxes)))
-                else:
-                    logger.info("Manifest file match - scan line ignored")
-            return checkm_file
-        else:
-            output = codecs.open(checkm_filename, encoding='utf-8', mode="w")
-            output.write("#%checkm_" + CHECKM_VERSION + "\n")
-            output.write("%s \n" % (self._space_line(CheckmReporter.COLUMN_NAMES[:columns], col_maxes)))
-            for line in report:
-                if os.path.abspath(line[0]) != os.path.abspath(checkm_filename):
-                    output.write("%s\n" % (self._space_line(line, col_maxes)))
-                else:
-                    logger.info("Manifest file match - scan line ignored")
-            output.write("\n")
+        return self._write_checkm_report(report, checkm_filename, columns, checkm_file)
 
     def check_bagit_hashes(self, bagit_filename, algorithm=None):
         """
