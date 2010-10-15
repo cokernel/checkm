@@ -95,7 +95,7 @@ class TestCheckm(unittest.TestCase):
             checkm_f.write("%s md5 %s\n" % (os.path.join(d,'foo.txt'), FOO_TXT_MD5))
         return dirname
 
-    def create_toplevel_checkm_bag_report(self):
+    def create_toplevel_checkm_report(self):
         dirname = mkdtemp()
         if self.dirnames:
             self.dirnames.append(dirname)
@@ -242,7 +242,7 @@ class TestCheckm(unittest.TestCase):
         self.assertEqual(len(report['include']), 8) # 7 m_checkm.txt files included
 
     def test_scanner_uses_bars(self):
-        dirname = self.create_toplevel_checkm_bag_report()
+        dirname = self.create_toplevel_checkm_report()
         checkm_file = open(os.path.join(dirname, "default_checkm.txt"), "r")
         for line in checkm_file:
             if not line.startswith('#'):
@@ -250,7 +250,7 @@ class TestCheckm(unittest.TestCase):
                 break
 
     def test_scanner_provides_version_string(self):
-        dirname = self.create_toplevel_checkm_bag_report()
+        dirname = self.create_toplevel_checkm_report()
         checkm_file = open(os.path.join(dirname, "default_checkm.txt"), "r")
         line = checkm_file.readline()
         self.failIfEqual(None, re.match('^#%checkm_\d+\.\d+\s*$', line))
