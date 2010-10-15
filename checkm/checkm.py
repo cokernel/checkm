@@ -522,13 +522,16 @@ class CheckmScanner(object):
             line = []
             # col 1
             line.append(unicode(item_path))
-            # col 2
-            line.append(unicode(algorithm))
-            # col 3
-            if os.path.isdir(item_path):
-                line.append(u'd')
-            else:
-                # No need to catch the ValueError from
+
+            # Alg is either the literal string "dir" (designating a directory), a string
+            # specifying a cryptographic checksum algorithm, or empty to leave it 
+            # unspecified.
+
+            if not os.path.isdir(item_path):
+                # col 2
+                line.append(unicode(algorithm))
+
+                # col 3
                 hash_gen = getattr(hashlib, algorithm)()
                 fh = open(item_path, 'rb')
                 logger.info("Checking %s with algorithm %s" % (item_path, algorithm))
@@ -537,6 +540,13 @@ class CheckmScanner(object):
                     hash_gen.update(chunk)
                     chunk= fh.read(1024*8)
                 line.append(unicode(hash_gen.hexdigest()))
+            else:
+                # col 2
+                line.append(u'dir')
+
+                # col 3
+                line.append(u'')
+
             if columns>3:
                 # col4 - Length
                 line.append(unicode(os.stat(item_path)[ST_SIZE]))

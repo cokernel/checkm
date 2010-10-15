@@ -91,6 +91,15 @@ class TestCheckm(unittest.TestCase):
             output.write("12345678901234567890\n")
         return dirname
 
+    def create_empty_directory_bag(self):
+        dirname = mkdtemp()
+        if self.dirnames:
+            self.dirnames.append(dirname)
+        else:
+            self.dirnames = [dirname]
+        os.mkdir(os.path.join(dirname, 'emptydir'))
+        return dirname
+
     def create_toplevel_checkm_bag(self):
         dirname = mkdtemp()
         if self.dirnames:
@@ -102,7 +111,8 @@ class TestCheckm(unittest.TestCase):
         checkm_f = open(os.path.join(dirname, "default_checkm.txt"), "wb")
         checkm_f.write("#Meaningless comments\n# Should be ignored!\n")
         for (d,_,_) in os.walk(dirname):
-            checkm_f.write("%s md5 d\n" % d)
+            #checkm_f.write("%s md5 d\n" % d)
+            checkm_f.write("%s dir  \n" % d)
             output = open(os.path.join(d,'foo.txt'), "wb")
             # write a file that has a known md5sum
             output.write("12345678901234567890\n")
@@ -130,7 +140,8 @@ class TestCheckm(unittest.TestCase):
                 checkm_f = open(os.path.join(d,'m_checkm.txt'), "wb")
                 checkm_f.write("# Meaningless comment!\n")
                 for subd in subdirs:
-                    checkm_f.write("%s md5 d\n" % os.path.join(d,subd))
+                    #checkm_f.write("%s md5 d\n" % os.path.join(d,subd))
+                    checkm_f.write("%s dir  \n" % os.path.join(d,subd))
                     checkm_f.write("@%s md5 -\n" % os.path.join(d,subd, 'm_checkm.txt'))
                 output = open(os.path.join(d,'foo.txt'), "wb")
                 # write a file that has a known md5sum
@@ -279,8 +290,9 @@ class TestCheckm(unittest.TestCase):
         input = open(os.path.join(dirname, 'default_checkm.txt'), 'r')
         lines = self.checkm_p.parse(input)
         for line in lines:
-            self.assertEqual(line[1], 'sha256')
-            break
+            if not( line[1] == 'dir' ):
+                self.assertEqual(line[1], 'sha256')
+                break
 
         # multilevel
         output = codecs.open(os.path.join(dirname, 'default_checkm.txt'), encoding='utf-8', mode="w")
@@ -289,8 +301,22 @@ class TestCheckm(unittest.TestCase):
         input = open(os.path.join(dirname, 'default_checkm.txt'), 'r')
         lines = self.checkm_p.parse(input)
         for line in lines:
-            self.assertEqual(line[1], 'sha256')
-            break
+            if not( line[1] == 'dir' ):
+                self.assertEqual(line[1], 'sha256')
+                break
 
+    def test_scanner_empty_directory(self):
+        dirname = self.create_empty_directory_bag()
+        output = codecs.open(os.path.join(dirname, 'default_checkm.txt'), encoding='utf-8', mode="w")
+        output = self.reporter.create_checkm_file(scan_directory=dirname,
+                                         checkm_filename='default_checkm.txt',
+                                         checkm_file=output)
+        input = open(os.path.join(dirname, 'default_checkm.txt'), 'r')
+        lines = self.checkm_p.parse(input)
+        for line in lines:
+            if line[0] == 'emptydir':
+                self.assertEqual(lines[0][1], 'dir')
+                break
+        
 if __name__ == '__main__':
     unittest.main()
