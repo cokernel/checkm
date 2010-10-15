@@ -77,6 +77,20 @@ class TestCheckm(unittest.TestCase):
         os.remove(filename)
         return results
         
+    def create_sample_bag(self):
+        dirname = mkdtemp()
+        if self.dirnames:
+            self.dirnames.append(dirname)
+        else:
+            self.dirnames = [dirname]
+        for subdir in [['1'],['2'],['3'],['1','1'],['1','2'],['1','3'],['2','data']]:
+            os.mkdir(os.path.join(dirname, *subdir))
+        for (d,_,_) in os.walk(dirname):
+            output = open(os.path.join(d,'foo.txt'), "wb")
+            # write a file that has a known md5sum
+            output.write("12345678901234567890\n")
+        return dirname
+
     def create_toplevel_checkm_bag(self):
         dirname = mkdtemp()
         if self.dirnames:
@@ -96,19 +110,12 @@ class TestCheckm(unittest.TestCase):
         return dirname
 
     def create_toplevel_checkm_report(self):
-        dirname = mkdtemp()
-        if self.dirnames:
-            self.dirnames.append(dirname)
-        else:
-            self.dirnames = [dirname]
-        for subdir in [['1'],['2'],['3'],['1','1'],['1','2'],['1','3'],['2','data']]:
-            os.mkdir(os.path.join(dirname, *subdir))
-        for (d,_,_) in os.walk(dirname):
-            output = open(os.path.join(d,'foo.txt'), "wb")
-            # write a file that has a known md5sum
-            output.write("12345678901234567890\n")
+        dirname = self.create_sample_bag()
         output = codecs.open(os.path.join(dirname, 'default_checkm.txt'), encoding='utf-8', mode="w")
-        self.reporter.create_checkm_file(dirname, 'md5', 'default_checkm.txt', False, 3, output)
+        self.reporter.create_checkm_file(scan_directory=dirname, 
+                                         algorithm='md5', 
+                                         checkm_filename='default_checkm.txt', 
+                                         checkm_file=output)
         return dirname
 
     def create_multi_checkm_bag(self):
@@ -260,6 +267,30 @@ class TestCheckm(unittest.TestCase):
         checkm_file = open(os.path.join(dirname, "default_checkm.txt"), "r")
         line = checkm_file.readline()
         self.failIfEqual(None, re.match('^#%checkm_\d+\.\d+\s*$', line))
+
+    def test_scanner_uses_sha256_by_default(self):
+        dirname = self.create_sample_bag()
+
+        # single-level
+        output = codecs.open(os.path.join(dirname, 'default_checkm.txt'), encoding='utf-8', mode="w")
+        output = self.reporter.create_checkm_file(scan_directory=dirname,
+                                         checkm_filename='default_checkm.txt',
+                                         checkm_file=output)
+        input = open(os.path.join(dirname, 'default_checkm.txt'), 'r')
+        lines = self.checkm_p.parse(input)
+        for line in lines:
+            self.assertEqual(line[1], 'sha256')
+            break
+
+        # multilevel
+        output = codecs.open(os.path.join(dirname, 'default_checkm.txt'), encoding='utf-8', mode="w")
+        output = self.reporter.create_multilevel_checkm(top_directory=dirname,
+                                                        checkm_filename='default_checkm.txt')
+        input = open(os.path.join(dirname, 'default_checkm.txt'), 'r')
+        lines = self.checkm_p.parse(input)
+        for line in lines:
+            self.assertEqual(line[1], 'sha256')
+            break
 
 if __name__ == '__main__':
     unittest.main()

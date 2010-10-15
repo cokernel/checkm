@@ -155,7 +155,7 @@ class CheckmReporter(object):
         #checkm_file.write('\n')
         return checkm_file
 
-    def create_multilevel_checkm(self, top_directory, algorithm, checkm_filename, columns=3):
+    def create_multilevel_checkm(self, top_directory, checkm_filename, algorithm='sha256', columns=3):
         logger.info("Creating multilevel checkm files '(%s)' from top level directory(%s) with Alg:%s and columns:%s" % (checkm_filename, top_directory, algorithm, columns))
         if not os.path.isdir(top_directory):
             raise NotFound(top_directory=top_directory)
@@ -168,9 +168,9 @@ class CheckmReporter(object):
         for (dirname,_) in dir_list:
             logger.info('creating checkm file %s in %s' % (checkm_filename, dirname))
             output = codecs.open(os.path.join(dirname, checkm_filename), encoding='utf-8', mode="w")
-            self.create_checkm_file(dirname, 
-                                    algorithm, 
-                                    os.path.join(dirname, checkm_filename), 
+            self.create_checkm_file(scan_directory=dirname, 
+                                    checkm_filename=os.path.join(dirname, checkm_filename), 
+                                    algorithm=algorithm, 
                                     recursive=False,
                                     columns=columns,
                                     checkm_file=output)
@@ -188,7 +188,7 @@ class CheckmReporter(object):
             output = self._write_checkm_report(subdir_report, checkm_filename, columns, output)
             output.write('\n')
 
-    def create_checkm_file(self, scan_directory, algorithm, checkm_filename, recursive=False, columns=3, checkm_file=None):
+    def create_checkm_file(self, scan_directory, checkm_filename, algorithm='sha256', recursive=False, columns=3, checkm_file=None):
         logger.info("Creating checkm file for dir(%s) with Alg:%s and columns: %s" % (
                                                                                           scan_directory,
                                                                                           algorithm, columns))

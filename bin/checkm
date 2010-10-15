@@ -40,7 +40,7 @@ checkm remove_multi [checkm filename (default:checkm.txt)]
                                     )
     parser.add_option("-a", "--algorithm", dest="alg",
                   help="Algorithm to use to hash files",
-                  default="md5")
+                  default="sha256")
     parser.add_option("-v", "--verbose", dest="verbose",
                   action="store_true",
                   help="Log information to stdin as it goes",
@@ -87,10 +87,17 @@ if __name__ == '__main__':
     try:
         if cmd == 'write':
             r = checkm.CheckmReporter()
-            r.create_checkm_file(filepath, alg, filename, recursive=recursive, columns=5)
+            r.create_checkm_file(scan_directory=filepath, 
+                                 algorithm=alg, 
+                                 checkm_filename=filename, 
+                                 recursive=recursive, 
+                                 columns=5)
         elif cmd == 'multi':
             r = checkm.CheckmReporter()
-            r.create_multilevel_checkm(filepath, alg, filename, columns=5)
+            r.create_multilevel_checkm(top_directory=filepath, 
+                                       algorithm=alg, 
+                                       checkm_filename=filename, 
+                                       columns=5)
         elif cmd == 'remove_multi':
             # Convenience function - deadly though so requires -f to not do a dry run
             # scans from a single checkm file and trys to delete the checkm files that are 
@@ -135,7 +142,11 @@ if __name__ == '__main__':
             s = StringIO()
             if filename != "checkm.txt":
                 filepath = filename
-            s = r.create_checkm_file(filepath, alg, s, recursive=recursive, columns=5)
+            s = r.create_checkm_file(scan_directory=filepath, 
+                                     algorithm=alg, 
+                                     checkm_filename=s, 
+                                     recursive=recursive, 
+                                     columns=5)
             s.seek(0)
             print s.read()
             s.close()
